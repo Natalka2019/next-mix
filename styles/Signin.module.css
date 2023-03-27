@@ -1,0 +1,35 @@
+.cardWrapper {
+    width: 300px;
+    height: 300px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-shadow: 0 4px 18px -18px blue;
+    border: 2px solid darkblue;
+}
+
+.cardContent button {
+    line-height: 1.5715;
+    position: relative;
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    border: none;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 2%);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    touch-action: manipulation;
+    height: 42px;
+    padding: 4px 15px;
+    font-size: 16px;
+    border-radius: 4px;
+    color: white;
+    background-color: #4267B2;
+    width: 100%;
+}
+
+.cardContent button:hover {
+    background-color: #5890FF;
+}
