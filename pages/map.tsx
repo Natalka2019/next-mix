@@ -29,6 +29,8 @@ const polylineOptions = {
     zIndex: 1
 };
 
+const destinationClicks = ["A", "B", "C"];
+
 const Map: NextPage = () => {
     const [destinations, setDestinations] = useState<IDestinations>({
         A: null,
@@ -55,12 +57,6 @@ const Map: NextPage = () => {
         libraries: libraries as any,
     });
 
-
-    console.log("destinations", destinations);
-
-    console.log("coordsForPolylines", coordsForPolylines);
-
-
     const constructRoute = () => {
         const updatedCoordsForPolylines = Object.values(destinations).map(destination => ({
             lat: destination.lat,
@@ -86,20 +82,22 @@ const Map: NextPage = () => {
     let deltaLat: number;
     let deltaLng: number;
     let isLast: boolean;
-    const moveMarkerFromAtoB = () => {
 
-        const point1LatLng = new window.google.maps.LatLng(coordsForPolylines[0].lat, coordsForPolylines[0].lng)
-        const point2LatLng = new window.google.maps.LatLng(coordsForPolylines[1].lat, coordsForPolylines[1].lng)
+    const createGoogleLatLngObject = (lat: number, lng: number) => new window.google.maps.LatLng(lat, lng);
 
-        const angle = window.google.maps.geometry.spherical.computeHeading(point1LatLng, point2LatLng)
-
+    const rotatePlane = (point1LatLng: google.maps.LatLng, point2LatLng: google.maps.LatLng) => {
+        const angle = window.google.maps.geometry.spherical.computeHeading(point1LatLng, point2LatLng);
         const marker = document.querySelector(`[src="/assets/plane_icon.png"]`) as HTMLElement;
 
-        console.log("marker", marker);
-
-        if (marker) { // when it hasn't loaded, it's null
+        if (marker) {
             marker.style.transform = `rotate(${angle}deg)`
         }
+    }
+    const moveMarkerFromAtoB = () => {
+        const point1LatLng = createGoogleLatLngObject(coordsForPolylines[0].lat, coordsForPolylines[0].lng);
+        const point2LatLng = createGoogleLatLngObject(coordsForPolylines[1].lat, coordsForPolylines[1].lng);
+
+        rotatePlane(point1LatLng, point2LatLng);
 
         i = 0;
         isLast = false;
@@ -110,21 +108,11 @@ const Map: NextPage = () => {
     }
 
     const moveMarkerFromBtoC = () => {
+        const pointALatLng = createGoogleLatLngObject(coordsForPolylines[0].lat, coordsForPolylines[0].lng);
+        const pointBLatLng = createGoogleLatLngObject(coordsForPolylines[1].lat, coordsForPolylines[1].lng);
+        const pointCLatLng = createGoogleLatLngObject(coordsForPolylines[2].lat, coordsForPolylines[2].lng);
 
-        const point1LatLng = new window.google.maps.LatLng(coordsForPolylines[1].lat, coordsForPolylines[1].lng);
-        const point2LatLng = new window.google.maps.LatLng(coordsForPolylines[2].lat, coordsForPolylines[2].lng);
-
-
-        const angle = window.google.maps.geometry.spherical.computeHeading(point1LatLng, point2LatLng);
-
-        const marker = document.querySelector(`[src="/assets/plane_icon.png"]`) as HTMLElement;
-
-        console.log("marker", marker);
-
-        if (marker) { // when it hasn't loaded, it's null
-            marker.style.transform = `rotate(${angle}deg)`
-        }
-
+        rotatePlane(pointBLatLng, pointCLatLng);
 
         i = 0;
         isLast = true;
@@ -132,14 +120,8 @@ const Map: NextPage = () => {
         deltaLat = (coordsForPolylines[2].lat - coordsForPolylines[1].lat) / numDeltas;
         deltaLng = (coordsForPolylines[2].lng - coordsForPolylines[1].lng) / numDeltas;
 
-
-        const ACord = new google.maps.LatLng(coordsForPolylines[0].lat, coordsForPolylines[0].lng);
-        const BCord = new google.maps.LatLng(coordsForPolylines[1].lat, coordsForPolylines[1].lng);
-        const CCord = new google.maps.LatLng(coordsForPolylines[2].lat, coordsForPolylines[2].lng);
-
-
-        const distanceBetweenAandB = google.maps.geometry.spherical.computeDistanceBetween(ACord, BCord);
-        const distanceBetweenBandC = google.maps.geometry.spherical.computeDistanceBetween(BCord, CCord);
+        const distanceBetweenAandB = window.google.maps.geometry.spherical.computeDistanceBetween(pointALatLng, pointBLatLng);
+        const distanceBetweenBandC = window.google.maps.geometry.spherical.computeDistanceBetween(pointBLatLng, pointCLatLng);
 
         delay = delay * distanceBetweenBandC / distanceBetweenAandB;
 
@@ -174,61 +156,29 @@ const Map: NextPage = () => {
         i++;
         setTimeout(() => moveMarker(initialLat, initialLng), delay);
 
-        console.log("i:", i, "deltaLat", deltaLat, "deltaLng", deltaLng, delay);
-
     };
 
-    const onMapClick = (e) => {
-
+    const onMapClick = (e: any) => {
 
         if (mapClicksCount === 3) return;
 
-        if (mapClicksCount === 0) {
-            setDestinations((prevState) => ({
-                ...prevState,
-                A: {
-                    lat: e.latLng.lat(),
-                    lng: e.latLng.lng()
-                }
+        setDestinations((prevState) => ({
+            ...prevState,
+            [destinationClicks[mapClicksCount]]: {
+                lat: e.latLng.lat(),
+                lng: e.latLng.lng()
+            }
         }));
 
-            setMapClicksCount(1);
-        }
-
-        if (mapClicksCount === 1) {
-            setDestinations((prevState) => ({
-                ...prevState,
-                B: {
-                    lat: e.latLng.lat(),
-                    lng: e.latLng.lng()
-                }
-            }));
-
-            setMapClicksCount(2);
-        }
-
-        if (mapClicksCount === 2) {
-            setDestinations((prevState) => ({
-                ...prevState,
-                C: {
-                    lat: e.latLng.lat(),
-                    lng: e.latLng.lng()
-                }
-            }));
-
-            setMapClicksCount(3);
-        }
+        setMapClicksCount(prevState => prevState + 1);
 
     };
-
-    console.log("coordsForPolylines", coordsForPolylines);
-    console.log("planePosition", planePosition);
 
     if (!isLoaded) {
         return <p>Loading...</p>;
     }
 
-    // @ts-ignore
+
     return (
         <div className={styles.container}>
             <div className={styles.sidebar}>
