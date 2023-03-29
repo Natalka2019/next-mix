@@ -1,5 +1,5 @@
 import usePlacesAutocomplete from "use-places-autocomplete";
-import styles from "@/styles/Map.module.css";
+import styles from "./PlacesAutocomplete.module.css";
 import React, {FunctionComponent} from "react";
 
 
