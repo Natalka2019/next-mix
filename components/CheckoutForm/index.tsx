@@ -1,60 +1,67 @@
-import React, { useState } from "react";
+import React, {FormEvent, useState} from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { destroyCookie } from "nookies";
+import axios from "axios";
 
-const CheckoutForm = ({ paymentIntent, userEmail }) => {
+interface IProps {
+    userEmail: string | undefined | null;
+}
+
+const CheckoutForm: React.FC<IProps> = ({ userEmail }) => {
     const stripe = useStripe();
     const elements = useElements();
-    const [checkoutError, setCheckoutError] = useState();
-    const [checkoutSuccess, setCheckoutSuccess] = useState();
+    const [savingError, setSavingError] = useState("");
+    const [savingSuccess, setSavingSuccess] = useState(false);
     const [error, setError] = useState(null);
 
     // Handle real-time validation errors from the CardElement.
-    const handleChange = (event) => {
+    const handleChange = (event: any) => {
         if (event.error) {
             setError(event.error.message);
         } else {
             setError(null);
         }
     }
-    const handleSubmit = async e => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (!stripe || !elements) {
+            return null;
+        }
 
         const card = elements.getElement(CardElement);
 
-        // const customer = await stripe.customers.create({
-        //     email: userEmail
-        // });
-
-        // add these lines
-        // const {paymentMethod, error} = await stripe.createPaymentMethod({
-        //     type: 'card',
-        //     card: card
-        // });
+        if (!card) {
+            return null;
+        }
 
         try {
-            const {
-                error,
-                paymentIntent: { status }
-            } = await stripe.confirmCardPayment(paymentIntent.client_secret, {
-                payment_method: {
-                    card: elements.getElement(CardElement)
-                }
+            const {paymentMethod, error} = await stripe.createPaymentMethod({
+                type: 'card',
+                card: card
             });
 
-            if (error) throw new Error(error.message);
+            const response = await axios.post("/api/stripe/create-stripe-customer", {
+                email: "test8@test.com",
+                paymentMethod: paymentMethod
+            });
 
-            if (status === "succeeded") {
-                setCheckoutSuccess(true);
-                destroyCookie(null, "paymentIntentId");
-            }
-        } catch (err) {
-            alert(err.message);
-            setCheckoutError(err.message);
+            console.log("response", response);
+
+            localStorage.setItem("test8@test.com", response.data.customer.id);
+
+            setSavingSuccess(true);
+
+
+        } catch (error) {
+            console.log(error);
+
+            alert(error.message);
+            setSavingError(error.message);
         }
+
     };
 
-    if (checkoutSuccess) return <p>Payment successful!</p>;
+    if (savingSuccess) return <p>Payment successful!</p>;
 
     return (
         <form onSubmit={handleSubmit}>
@@ -63,10 +70,10 @@ const CheckoutForm = ({ paymentIntent, userEmail }) => {
             <div className="card-errors" role="alert">{error}</div>
 
             <button type="submit" disabled={!stripe}>
-                Pay now
+                Save card details
             </button>
 
-            {checkoutError && <span style={{ color: "red" }}>{checkoutError}</span>}
+            {savingError && <span style={{ color: "red" }}>{savingError}</span>}
         </form>
     );
 };

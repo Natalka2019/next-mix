@@ -5,13 +5,10 @@ import {useSession} from "next-auth/react";
 import PageWrapper from "@/components/PageWrapper";
 import Link from "next/link";
 import CheckoutCard from "@/components/CheckoutCard"
-import Stripe from "stripe";
-import {parseCookies, setCookie} from "nookies";
 
-export default function Home({paymentIntent}) {
+export default function Home() {
     const {data: session, status} = useSession();
     const loading = status === "loading";
-
 
     return (
         <>
@@ -35,11 +32,14 @@ export default function Home({paymentIntent}) {
                                     <img src={session.user.image} alt="" className={styles.avatar}/>}
 
                                 <div>
-                                    <CheckoutCard paymentIntent = {paymentIntent}/>
+                                    <CheckoutCard userEmail={session.user?.email}/>
                                 </div>
 
                                 <div className={styles.mapButton}>
-                                    <Link href="/map">Show map</Link>
+                                    <Link   href={{
+                                        pathname: '/map',
+                                        query: {userEmail: session.user?.email}
+                                    }}>Show map</Link>
                                 </div>
 
                             </>
@@ -50,36 +50,3 @@ export default function Home({paymentIntent}) {
         </>
     );
 }
-
-
-export const getServerSideProps = async ctx => {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-    let paymentIntent;
-
-    const {paymentIntentId} = await parseCookies(ctx);
-
-    if (paymentIntentId) {
-        paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-        return {
-            props: {
-                paymentIntent
-            }
-        };
-    }
-
-    paymentIntent = await stripe.paymentIntents.create({
-        amount: 1000,
-        currency: "gbp"
-    });
-
-    setCookie(ctx, "paymentIntentId", paymentIntent.id);
-
-
-    return {
-        props: {
-            paymentIntent
-        }
-    };
-};

@@ -9,6 +9,9 @@ import {
 } from 'use-places-autocomplete';
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
 import {IDestinations, ICoord} from "@/types/map";
+import Modal from "@/components/Modal";
+import InformationModal from "@/components/InformationModal";
+import {useRouter} from "next/router";
 
 
 const libraries = ['places'];
@@ -32,6 +35,9 @@ const polylineOptions = {
 const destinationClicks = ["A", "B", "C"];
 
 const Map: NextPage = () => {
+    const router = useRouter();
+    const {userEmail} = router.query;
+
     const [destinations, setDestinations] = useState<IDestinations>({
         A: null,
         B: null,
@@ -41,7 +47,11 @@ const Map: NextPage = () => {
     const [mapClicksCount, setMapClicksCount] = useState(0);
     const [coordsForPolylines, setCoordsForPolylines] = useState<ICoord[]>([]);
     const [planePosition, setPlanePosition] = useState<ICoord | null>(null);
-
+    const [showModal, setShowModal] = useState(false);
+    const [distance, setDistance] = useState(0);
+    const [pointALatLng, setPointALatLng] = useState<google.maps.LatLng>();
+    const [pointBLatLng, setPointBLatLng] = useState<google.maps.LatLng>();
+    const [pointCLatLng, setPointCLatLng] = useState<google.maps.LatLng>();
 
     const mapOptions = useMemo<google.maps.MapOptions>(
         () => ({
@@ -66,12 +76,16 @@ const Map: NextPage = () => {
         setCoordsForPolylines(updatedCoordsForPolylines);
 
 
-        if(destinations.A) {
+        if (destinations.A) {
             setPlanePosition({
                 lat: destinations.A.lat,
                 lng: destinations.A.lng
             });
         }
+
+        setPointALatLng(createGoogleLatLngObject(destinations.A?.lat, destinations.A?.lng));
+        setPointBLatLng(createGoogleLatLngObject(destinations.B?.lat, destinations.B?.lng));
+        setPointCLatLng(createGoogleLatLngObject(destinations.C?.lat, destinations.C?.lng));
 
     };
 
@@ -83,7 +97,11 @@ const Map: NextPage = () => {
     let deltaLng: number;
     let isLast: boolean;
 
-    const createGoogleLatLngObject = (lat: number, lng: number) => new window.google.maps.LatLng(lat, lng);
+    const createGoogleLatLngObject = (lat: number | undefined, lng: number | undefined) => {
+        if (lat && lng) {
+            return new window.google.maps.LatLng(lat, lng)
+        }
+    };
 
     const rotatePlane = (point1LatLng: google.maps.LatLng, point2LatLng: google.maps.LatLng) => {
         const angle = window.google.maps.geometry.spherical.computeHeading(point1LatLng, point2LatLng);
@@ -94,39 +112,46 @@ const Map: NextPage = () => {
         }
     }
     const moveMarkerFromAtoB = () => {
-        const point1LatLng = createGoogleLatLngObject(coordsForPolylines[0].lat, coordsForPolylines[0].lng);
-        const point2LatLng = createGoogleLatLngObject(coordsForPolylines[1].lat, coordsForPolylines[1].lng);
-
-        rotatePlane(point1LatLng, point2LatLng);
+        if (pointALatLng && pointBLatLng) {
+            rotatePlane(pointALatLng, pointBLatLng);
+        }
 
         i = 0;
         isLast = false;
-        deltaLat = (coordsForPolylines[1].lat - coordsForPolylines[0].lat) / numDeltas;
-        deltaLng = (coordsForPolylines[1].lng - coordsForPolylines[0].lng) / numDeltas;
 
-        moveMarker(coordsForPolylines[0].lat, coordsForPolylines[0].lng);
+        if (destinations.A && destinations.B) {
+            deltaLat = (destinations.B?.lat - destinations.A?.lat) / numDeltas;
+            deltaLng = (destinations.B?.lng - destinations.A?.lng) / numDeltas;
+
+            moveMarker(destinations.A?.lat, destinations.A?.lng);
+        }
+
     }
 
     const moveMarkerFromBtoC = () => {
-        const pointALatLng = createGoogleLatLngObject(coordsForPolylines[0].lat, coordsForPolylines[0].lng);
-        const pointBLatLng = createGoogleLatLngObject(coordsForPolylines[1].lat, coordsForPolylines[1].lng);
-        const pointCLatLng = createGoogleLatLngObject(coordsForPolylines[2].lat, coordsForPolylines[2].lng);
+        let distanceBetweenAandB;
+        let distanceBetweenBandC;
 
-        rotatePlane(pointBLatLng, pointCLatLng);
+        if (pointALatLng && pointBLatLng && pointCLatLng) {
+            rotatePlane(pointBLatLng, pointCLatLng);
+
+            distanceBetweenAandB = window.google.maps.geometry.spherical.computeDistanceBetween(pointALatLng, pointBLatLng);
+            distanceBetweenBandC = window.google.maps.geometry.spherical.computeDistanceBetween(pointBLatLng, pointCLatLng);
+
+            delay = delay * distanceBetweenBandC / distanceBetweenAandB;
+        }
+
 
         i = 0;
         isLast = true;
 
-        deltaLat = (coordsForPolylines[2].lat - coordsForPolylines[1].lat) / numDeltas;
-        deltaLng = (coordsForPolylines[2].lng - coordsForPolylines[1].lng) / numDeltas;
+        if (destinations.B && destinations.C) {
+            deltaLat = (destinations.C?.lat - destinations.B?.lat) / numDeltas;
+            deltaLng = (destinations.C?.lng - destinations.B?.lng) / numDeltas;
 
-        const distanceBetweenAandB = window.google.maps.geometry.spherical.computeDistanceBetween(pointALatLng, pointBLatLng);
-        const distanceBetweenBandC = window.google.maps.geometry.spherical.computeDistanceBetween(pointBLatLng, pointCLatLng);
+            moveMarker(destinations.B?.lat, destinations.B?.lng);
+        }
 
-        delay = delay * distanceBetweenBandC / distanceBetweenAandB;
-
-
-        moveMarker(coordsForPolylines[1].lat, coordsForPolylines[1].lng);
     }
 
     const movement = () => {
@@ -174,93 +199,120 @@ const Map: NextPage = () => {
 
     };
 
+    const showPaymentModal = () => {
+
+
+        if (pointALatLng && pointBLatLng && pointCLatLng) {
+            const distanceBetweenAandB = window.google.maps.geometry.spherical.computeDistanceBetween(pointALatLng, pointBLatLng);
+            const distanceBetweenBandC = window.google.maps.geometry.spherical.computeDistanceBetween(pointBLatLng, pointCLatLng);
+
+
+            setDistance(distanceBetweenAandB + distanceBetweenBandC);
+        }
+
+        setShowModal(true)
+    };
+
+
     if (!isLoaded) {
         return <p>Loading...</p>;
     }
 
 
     return (
-        <div className={styles.container}>
-            <div className={styles.sidebar}>
-                <p>Select places</p>
+        <>
+            <div className={styles.container}>
+                <div className={styles.sidebar}>
+                    <p>Select places</p>
 
-                <ul className={styles.destinationsList}>
-                    {Object.keys(destinations).map((destKey) => (
-                        <li className={styles.destinationsList__item} key={destKey}>
-                            <label>
-                                {destKey}
-                                <PlacesAutocomplete
-                                    onAddressSelect={(address: string) => {
-                                        getGeocode({address: address}).then((results) => {
-                                            const {lat, lng} = getLatLng(results[0]);
+                    <ul className={styles.destinationsList}>
+                        {Object.keys(destinations).map((destKey) => (
+                            <li className={styles.destinationsList__item} key={destKey}>
+                                <label>
+                                    {destKey}
+                                    <PlacesAutocomplete
+                                        onAddressSelect={(address: string) => {
+                                            getGeocode({address: address}).then((results) => {
+                                                const {lat, lng} = getLatLng(results[0]);
 
-                                            setDestinations((prevState
-                                            ) => ({
-                                                ...prevState,
-                                                [destKey]: {lat: lat, lng: lng}
-                                            }));
-                                        });
-                                    }}
-                                    placeholder="Type place name"
-                                />
-                            </label>
+                                                setDestinations((prevState
+                                                ) => ({
+                                                    ...prevState,
+                                                    [destKey]: {lat: lat, lng: lng}
+                                                }));
+                                            });
+                                        }}
+                                        placeholder="Type place name"
+                                    />
+                                </label>
 
-                        </li>
-                    ))}
-                </ul>
+                            </li>
+                        ))}
+                    </ul>
 
-                <button onClick={constructRoute}>Construct route</button>
+                    <button onClick={constructRoute}>Construct route</button>
 
-                <button onClick={movement}>Move marker</button>
+                    {/*<button onClick={movement}>Move marker</button>*/}
 
+                    <button onClick={showPaymentModal}>Show payment modal</button>
+
+                </div>
+
+                <GoogleMap
+                    options={mapOptions}
+                    zoom={3}
+                    center={mapCenter}
+                    mapTypeId={google.maps.MapTypeId.ROADMAP}
+                    mapContainerStyle={{width: '800px', height: '800px'}}
+                    onLoad={() => console.log('Map Loaded')}
+                    onClick={onMapClick}
+                >
+
+                    {Object.keys(destinations).map((destKey) => {
+
+                        if (destinations[destKey as keyof IDestinations]) {
+                            return (
+                                <React.Fragment key={destKey}>
+                                    <MarkerF
+                                        position={destinations[destKey as keyof IDestinations]}
+                                        onLoad={() => console.log('Marker Loaded', destinations[destKey as keyof IDestinations]?.lat, destinations[destKey as keyof IDestinations]?.lng)}
+                                        label={destKey}
+
+                                    />
+                                </React.Fragment>
+
+                            )
+                        }
+
+                    })}
+
+                    {planePosition && <MarkerF
+                        position={planePosition}
+                        onLoad={() => console.log('Marker Loaded')}
+                        title="plane"
+                        icon={{
+                            url: "/assets/plane_icon.png",
+                            scaledSize: new window.google.maps.Size(20, 20),
+                            anchor: {x: 10, y: 10}
+                        }}
+                    />}
+
+
+                    <PolylineF
+                        path={coordsForPolylines}
+                        options={polylineOptions}
+                    />
+                </GoogleMap>
             </div>
-
-            <GoogleMap
-                options={mapOptions}
-                zoom={3}
-                center={mapCenter}
-                mapTypeId={google.maps.MapTypeId.ROADMAP}
-                mapContainerStyle={{width: '800px', height: '800px'}}
-                onLoad={() => console.log('Map Loaded')}
-                onClick={onMapClick}
+            {showModal && <Modal
+                onClose={() => setShowModal(false)}
+                show={showModal}
             >
+                <InformationModal userEmail={userEmail} distance={distance} onClose={() => setShowModal(false)}
+                                  movement={movement}/>
+            </Modal>}
 
-                {Object.keys(destinations).map((destKey) => {
-
-                    if (destinations[destKey as keyof IDestinations]) {
-                        return (
-                            <React.Fragment key={destKey}>
-                                <MarkerF
-                                    position={destinations[destKey as keyof IDestinations]}
-                                    onLoad={() => console.log('Marker Loaded', destinations[destKey as keyof IDestinations]?.lat, destinations[destKey as keyof IDestinations]?.lng)}
-                                    label={destKey}
-
-                                />
-                            </React.Fragment>
-
-                        )
-                    }
-
-                })}
-
-                {planePosition && <MarkerF
-                    position={planePosition}
-                    onLoad={() => console.log('Marker Loaded')}
-                    title="plane"
-                    icon={{
-                        url: "/assets/plane_icon.png",
-                        scaledSize: new window.google.maps.Size(20, 20),
-                        anchor: {x: 10, y: 10}
-                    }}
-                />}
-
-
-                <PolylineF
-                    path={coordsForPolylines}
-                    options={polylineOptions}
-                />
-            </GoogleMap>
-        </div>
+        </>
     )
 }
 

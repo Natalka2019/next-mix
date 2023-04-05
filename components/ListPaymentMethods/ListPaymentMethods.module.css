@@ -1,0 +1,49 @@
+.wrapper {
+    padding: 30px;
+
+}
+
+.title {
+    margin-bottom: 40px;
+}
+
+.card {
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    padding: 20px 20px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    cursor: pointer;
+    width: 400px;
+
+}
+
+.card:hover {
+    background-color: #eee;
+}
+
+
+.details p:first-child {
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.details p:nth-child(2) {
+    font-size: 14px;
+    color: #595959;
+}
+
+.expire {
+    margin-left: auto;
+    font-size: 14px;
+}
+
+.expire p {
+    margin-right: 5px;
+}
+
+.expire p:last-child {
+    margin-left: auto;
+}

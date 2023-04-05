@@ -1,16 +1,18 @@
 import React from "react";
-import Stripe from "stripe";
-import {parseCookies, setCookie} from "nookies";
-import {loadStripe} from "@stripe/stripe-js";
 import {Elements} from "@stripe/react-stripe-js";
 
 import CheckoutForm from "../CheckoutForm";
+import getStripejs from "@/utils/get-stripejs";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = getStripejs();
 
-const CheckoutCard = ({paymentIntent}) => (
+interface IProps {
+    userEmail: string | undefined | null;
+}
+
+const CheckoutCard: React.FC<IProps> = ({userEmail}) => (
     <Elements stripe={stripePromise}>
-        <CheckoutForm paymentIntent={paymentIntent} />
+        <CheckoutForm userEmail={userEmail}/>
     </Elements>
 );
 
