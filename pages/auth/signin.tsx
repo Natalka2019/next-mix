@@ -5,9 +5,11 @@ import {authOptions} from "../api/auth/[...nextauth]";
 import {useRouter} from 'next/router';
 import styles from '../../styles/Signin.module.css'
 import PageWrapper from "@/components/PageWrapper";
+import {getSimpleStringFromParam} from "@/utils/getSimpleStringFromParams";
 
 export default function SignIn({providers}: InferGetServerSidePropsType<typeof getServerSideProps>) {
     const {query: {callbackUrl}} = useRouter();
+    const url = getSimpleStringFromParam(callbackUrl);
 
     return (
         <PageWrapper>
@@ -16,7 +18,7 @@ export default function SignIn({providers}: InferGetServerSidePropsType<typeof g
                     {Object.values(providers).map((provider) => (
                         <div key={provider.name}>
                             <a href={provider.signinUrl} onClick={(e) => e.preventDefault()}>
-                                <button onClick={() => signIn(provider.id, {callbackUrl})}>
+                                <button onClick={() => signIn(provider.id, {callbackUrl: url})}>
                                     Sign in with {provider.name}
                                 </button>
                             </a>

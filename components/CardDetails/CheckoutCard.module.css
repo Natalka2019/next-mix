@@ -1,0 +1,8 @@
+.wrapper {
+    width: 500px;
+    padding: 20px;
+    margin-top: 50px;
+    border: 1px solid darkblue;
+    border-radius: 10px;
+    box-shadow: 2px 5px 10px darkblue;
+}

@@ -21,7 +21,7 @@ interface IScreen {
 
 const stripePromise = getStripejs();
 
-const InformationModal: React.FC<IProps> = ({userEmail, distance, onClose, movement}) => {
+const InformationModal: React.FC<IProps> = ({userEmail = "", distance, onClose, movement}) => {
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | undefined>();
     const [paymentIntent, setPaymentIntent] = useState(null);
     const [activeScreen, setActiveScreen] = useState<IScreen>({
@@ -29,7 +29,7 @@ const InformationModal: React.FC<IProps> = ({userEmail, distance, onClose, movem
         paymentForm: false,
     });
 
-    const customerId = localStorage.getItem("test8@test.com");
+    const customerId = localStorage.getItem(userEmail);
     const distanceTransformedToAmount = (Math.round(distance / 100000 * 100) / 100).toFixed(2);
 
     function handleSelectCard(method: PaymentMethod) {

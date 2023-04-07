@@ -1,12 +1,14 @@
 import React, {FormEvent, useState} from "react";
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import {CardElement, useStripe, useElements} from "@stripe/react-stripe-js";
 import axios from "axios";
+import styles from "./CardDetails.module.css";
 
 interface IProps {
     userEmail: string | undefined | null;
+    setShowMapButton: (status: boolean) => void;
 }
 
-const CheckoutForm: React.FC<IProps> = ({ userEmail }) => {
+const CardDetailsForm: React.FC<IProps> = ({userEmail, setShowMapButton}) => {
     const stripe = useStripe();
     const elements = useElements();
     const [savingError, setSavingError] = useState("");
@@ -41,41 +43,43 @@ const CheckoutForm: React.FC<IProps> = ({ userEmail }) => {
             });
 
             const response = await axios.post("/api/stripe/create-stripe-customer", {
-                email: "test8@test.com",
+                email: userEmail,
                 paymentMethod: paymentMethod
             });
 
-            console.log("response", response);
-
-            localStorage.setItem("test8@test.com", response.data.customer.id);
+            if (userEmail) {
+                localStorage.setItem(userEmail, response.data.customer.id);
+            }
 
             setSavingSuccess(true);
-
+            setShowMapButton(true);
 
         } catch (error) {
-            console.log(error);
-
-            alert(error.message);
-            setSavingError(error.message);
+            if (error instanceof Error) {
+                alert(error.message);
+                setSavingError(error.message);
+            }
         }
 
     };
 
-    if (savingSuccess) return <p>Payment successful!</p>;
+    if (savingSuccess) return <p>Card details successfully saved!</p>;
 
     return (
         <form onSubmit={handleSubmit}>
-            <label htmlFor="card-element">Credit or debit card</label>
+            <label htmlFor="card-element" className={styles.label}>Enter credit or debit card details</label>
             <CardElement id="card-element" onChange={handleChange}/>
             <div className="card-errors" role="alert">{error}</div>
 
-            <button type="submit" disabled={!stripe}>
-                Save card details
-            </button>
+            <div className={styles.buttonContainer}>
+                <button type="submit" disabled={!stripe} className={styles.buttonSubmit}>
+                    Save card details
+                </button>
+            </div>
 
-            {savingError && <span style={{ color: "red" }}>{savingError}</span>}
+            {savingError && <span style={{color: "red"}}>{savingError}</span>}
         </form>
     );
 };
 
-export default CheckoutForm;
+export default CardDetailsForm;

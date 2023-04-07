@@ -12,6 +12,7 @@ import {IDestinations, ICoord} from "@/types/map";
 import Modal from "@/components/Modal";
 import InformationModal from "@/components/InformationModal";
 import {useRouter} from "next/router";
+import {getSimpleStringFromParam} from "@/utils/getSimpleStringFromParams";
 
 
 const libraries = ['places'];
@@ -37,6 +38,7 @@ const destinationClicks = ["A", "B", "C"];
 const Map: NextPage = () => {
     const router = useRouter();
     const {userEmail} = router.query;
+    const email = getSimpleStringFromParam(userEmail);
 
     const [destinations, setDestinations] = useState<IDestinations>({
         A: null,
@@ -308,7 +310,7 @@ const Map: NextPage = () => {
                 onClose={() => setShowModal(false)}
                 show={showModal}
             >
-                <InformationModal userEmail={userEmail} distance={distance} onClose={() => setShowModal(false)}
+                <InformationModal userEmail={email} distance={distance} onClose={() => setShowModal(false)}
                                   movement={movement}/>
             </Modal>}
 

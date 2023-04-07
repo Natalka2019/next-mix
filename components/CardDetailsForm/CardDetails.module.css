@@ -1,0 +1,29 @@
+form .card-errors {
+    color: red;
+}
+
+.label {
+    display: block;
+    margin-bottom: 20px;
+}
+
+.buttonContainer {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.buttonSubmit {
+    margin-top: 40px;
+    background-color: #4267B2;
+    color: white;
+    width: 150px;
+    height: 40px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.buttonSubmit:hover {
+    background-color: darkblue;
+}
