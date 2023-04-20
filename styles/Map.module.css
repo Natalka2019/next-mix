@@ -22,3 +22,22 @@
     margin: 20px 5px;
 }
 
+.constructRoute, .showPaymentModal {
+    width: 96%;
+    margin: 20px 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.constructRoute {
+    color: darkblue;
+    background-color: aquamarine;
+}
+
+.showPaymentModal {
+    color: darkblue;
+    background-color: aqua;
+}
+

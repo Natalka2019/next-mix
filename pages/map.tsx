@@ -252,11 +252,11 @@ const Map: NextPage = () => {
                         ))}
                     </ul>
 
-                    <button onClick={constructRoute}>Construct route</button>
+                    <button className={styles.constructRoute} onClick={constructRoute}>Construct route</button>
 
                     {/*<button onClick={movement}>Move marker</button>*/}
 
-                    <button onClick={showPaymentModal}>Show payment modal</button>
+                    <button className={styles.showPaymentModal} onClick={showPaymentModal}>Show payment modal</button>
 
                 </div>
 
