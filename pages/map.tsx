@@ -1,22 +1,26 @@
 import React from "react";
 import {useLoadScript, GoogleMap, MarkerF, PolylineF} from '@react-google-maps/api';
 import type {NextPage} from 'next';
-import styles from '../styles/Map.module.css';
+import {useRouter} from "next/router";
 import {useMemo, useState} from "react";
 import {
     getGeocode,
     getLatLng,
 } from 'use-places-autocomplete';
+
+
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
-import {IDestinations} from "@/types/map";
+import {ICoord, IDestinations} from "@/types/map";
 import Modal from "@/components/Modal";
 import InformationModal from "@/components/InformationModal";
-import {useRouter} from "next/router";
 import {getSimpleStringFromParam} from "@/utils/getSimpleStringFromParams";
 import {extractCityAndCountryFromAddress, getCityAndCountry} from "@/utils/getCityAndCountry";
 import Header from "@/components/Header";
 import PageWrapper from "@/components/PageWrapper";
 import useConstructRoute from "@/hooks/useConstructRoute";
+
+import styles from '../styles/Map.module.css';
+import useMoveMarker from "@/hooks/useMoveMarker";
 
 
 const libraries = ['places'];
@@ -46,17 +50,6 @@ const Map: NextPage = () => {
     const email = getSimpleStringFromParam(userEmail);
     const name = getSimpleStringFromParam(userName);
 
-    const {
-        constructRoute,
-        coordsForPolylines,
-        planePosition,
-        pointALatLng,
-        pointBLatLng,
-        pointCLatLng,
-        setPlanePosition,
-        setCoordsForPolylines
-    } = useConstructRoute();
-
     const [destinations, setDestinations] = useState<IDestinations>({
         A: null,
         B: null,
@@ -67,6 +60,46 @@ const Map: NextPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [distance, setDistance] = useState(0);
     const [selectNewRoute, setSelectNewRoute] = useState(false);
+    const [planePosition, setPlanePosition] = useState<ICoord | null>(null);
+    const [pointALatLng, setPointALatLng] = useState<google.maps.LatLng>();
+    const [pointBLatLng, setPointBLatLng] = useState<google.maps.LatLng>();
+    const [pointCLatLng, setPointCLatLng] = useState<google.maps.LatLng>();
+
+    const rotatePlane = (point1LatLng: google.maps.LatLng, point2LatLng: google.maps.LatLng) => {
+        const angle = window.google.maps.geometry.spherical.computeHeading(point1LatLng, point2LatLng);
+        const marker = document.querySelector(`[src="/assets/plane_icon.png"]`) as HTMLElement;
+
+        if (marker) {
+            marker.style.transform = `rotate(${angle}deg)`
+        }
+    }
+
+    const {
+        constructRoute,
+        coordsForPolylines,
+        setCoordsForPolylines
+    } = useConstructRoute(
+        {
+            setPlanePosition,
+            setPointALatLng,
+            setPointBLatLng,
+            setPointCLatLng
+        }
+    );
+
+    const {
+        movement
+    } = useMoveMarker(
+        {
+            setPlanePosition,
+            destinations,
+            rotatePlane,
+            pointALatLng,
+            pointBLatLng,
+            pointCLatLng,
+            setSelectNewRoute
+        }
+    );
 
     const mapOptions = useMemo<google.maps.MapOptions>(
         () => ({
@@ -81,97 +114,6 @@ const Map: NextPage = () => {
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
         libraries: libraries as any,
     });
-
-
-    const numDeltas = 100;
-    let delay = 10; //milliseconds
-    let i = 0;
-    let deltaLat: number;
-    let deltaLng: number;
-    let isLast: boolean;
-
-
-    const rotatePlane = (point1LatLng: google.maps.LatLng, point2LatLng: google.maps.LatLng) => {
-        const angle = window.google.maps.geometry.spherical.computeHeading(point1LatLng, point2LatLng);
-        const marker = document.querySelector(`[src="/assets/plane_icon.png"]`) as HTMLElement;
-
-        if (marker) {
-            marker.style.transform = `rotate(${angle}deg)`
-        }
-    }
-    const moveMarkerFromAtoB = () => {
-        if (pointALatLng && pointBLatLng) {
-            rotatePlane(pointALatLng, pointBLatLng);
-        }
-
-        i = 0;
-        isLast = false;
-
-        if (destinations.A && destinations.B) {
-            deltaLat = (destinations.B?.lat - destinations.A?.lat) / numDeltas;
-            deltaLng = (destinations.B?.lng - destinations.A?.lng) / numDeltas;
-
-            moveMarker(destinations.A?.lat, destinations.A?.lng);
-        }
-
-    }
-
-    const moveMarkerFromBtoC = () => {
-        let distanceBetweenAandB;
-        let distanceBetweenBandC;
-
-        if (pointALatLng && pointBLatLng && pointCLatLng) {
-            rotatePlane(pointBLatLng, pointCLatLng);
-
-            distanceBetweenAandB = window.google.maps.geometry.spherical.computeDistanceBetween(pointALatLng, pointBLatLng);
-            distanceBetweenBandC = window.google.maps.geometry.spherical.computeDistanceBetween(pointBLatLng, pointCLatLng);
-
-            delay = delay * distanceBetweenBandC / distanceBetweenAandB;
-        }
-
-
-        i = 0;
-        isLast = true;
-
-        if (destinations.B && destinations.C) {
-            deltaLat = (destinations.C?.lat - destinations.B?.lat) / numDeltas;
-            deltaLng = (destinations.C?.lng - destinations.B?.lng) / numDeltas;
-
-            moveMarker(destinations.B?.lat, destinations.B?.lng);
-        }
-
-    }
-
-    const movement = async () => {
-        await moveMarkerFromAtoB();
-    };
-
-    const moveMarker = (initialLat: number, initialLng: number) => {
-        if (i === numDeltas && isLast) {
-
-            setSelectNewRoute(true);
-
-            return;
-        }
-
-        if (i === numDeltas && !isLast) {
-            moveMarkerFromBtoC();
-            return;
-        }
-
-
-        initialLat += deltaLat;
-        initialLng += deltaLng;
-
-        setPlanePosition({
-            lat: initialLat,
-            lng: initialLng
-        });
-
-        i++;
-        setTimeout(() => moveMarker(initialLat, initialLng), delay)
-
-    };
 
     const onMapClick = async (e: any) => {
 

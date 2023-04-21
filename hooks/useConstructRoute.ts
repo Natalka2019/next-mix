@@ -2,17 +2,28 @@ import {useState} from "react";
 import {ICoord, IDestinations} from "@/types/map";
 
 
+interface IProps {
+    setPlanePosition: (value: ICoord | null) => void;
+    setPointALatLng: (value: google.maps.LatLng | undefined) => void;
+    setPointBLatLng: (value: google.maps.LatLng | undefined) => void;
+    setPointCLatLng: (value: google.maps.LatLng | undefined) => void;
+}
+
 const createGoogleLatLngObject = (lat: number | undefined, lng: number | undefined) => {
     if (lat && lng) {
         return new window.google.maps.LatLng(lat, lng)
     }
 };
-const useConstructRoute = () => {
+const useConstructRoute = ({
+                               setPlanePosition,
+                               setPointALatLng,
+                               setPointBLatLng,
+                               setPointCLatLng
+                           }: IProps) => {
     const [coordsForPolylines, setCoordsForPolylines] = useState<ICoord[]>([]);
-    const [planePosition, setPlanePosition] = useState<ICoord | null>(null);
-    const [pointALatLng, setPointALatLng] = useState<google.maps.LatLng>();
-    const [pointBLatLng, setPointBLatLng] = useState<google.maps.LatLng>();
-    const [pointCLatLng, setPointCLatLng] = useState<google.maps.LatLng>();
+    // const [pointALatLng, setPointALatLng] = useState<google.maps.LatLng>();
+    // const [pointBLatLng, setPointBLatLng] = useState<google.maps.LatLng>();
+    // const [pointCLatLng, setPointCLatLng] = useState<google.maps.LatLng>();
     const constructRoute = (destinations: IDestinations) => {
         const updatedCoordsForPolylines = Object.values(destinations).map(destination => ({
             lat: destination.lat,
@@ -38,10 +49,6 @@ const useConstructRoute = () => {
     return {
         constructRoute,
         coordsForPolylines,
-        planePosition,
-        pointALatLng,
-        pointBLatLng,
-        pointCLatLng,
         setPlanePosition,
         setCoordsForPolylines
     }
