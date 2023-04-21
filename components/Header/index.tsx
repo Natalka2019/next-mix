@@ -11,7 +11,7 @@ export default function Header () {
 
     const handleSignout = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        signOut();
+        signOut({ redirect: true, callbackUrl: "/", });
     };
 
     return (

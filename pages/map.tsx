@@ -171,7 +171,6 @@ const Map: NextPage = () => {
 
             setSelectNewRoute(true);
 
-            console.log("INSIDE MOVEMENT");
             return;
         }
 
@@ -245,8 +244,6 @@ const Map: NextPage = () => {
 
     }
 
-    console.log("destinations", destinations);
-    console.log("selectNewRoute", selectNewRoute);
 
     const clearSelections = () => {
         setDestinations({
@@ -269,8 +266,8 @@ const Map: NextPage = () => {
 
     return (
         <>
-            {/*<Header/>*/}
-            {/*<PageWrapper>*/}
+            <Header/>
+            <PageWrapper>
             <div className={styles.container}>
                 <div className={styles.sidebar}>
                     <p>Select places</p>
@@ -292,8 +289,6 @@ const Map: NextPage = () => {
                     </ul>
 
                     <button className={styles.constructRoute} onClick={constructRoute}>Construct route</button>
-
-                    {/*<button onClick={movement}>Move marker</button>*/}
 
                     <button className={styles.showPaymentModal} onClick={showPaymentModal}>Show payment modal</button>
 
@@ -360,7 +355,7 @@ const Map: NextPage = () => {
                 />
             </Modal>}
 
-                {/*</PageWrapper>*/}
+            </PageWrapper>
         </>
     )
 }
