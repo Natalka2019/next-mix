@@ -2,7 +2,6 @@ import React from "react";
 import {useState} from "react";
 import style from "./PaymentForm.module.css";
 import joinClassNames from "../../utils/joinClassNames";
-import {format} from "date-fns";
 import {useStripe, CardCvcElement, useElements} from "@stripe/react-stripe-js";
 import axios from "axios";
 import {PaymentMethod} from '@stripe/stripe-js';
@@ -21,7 +20,7 @@ const PaymentForm: React.FC<IProps> = ({paymentMethod, paymentIntent, onClose, m
 
     const [cvcError, setCvcError] = useState(null);
 
-    const {card, billing_details} = paymentMethod;
+    const {card} = paymentMethod;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -84,10 +83,6 @@ const PaymentForm: React.FC<IProps> = ({paymentMethod, paymentIntent, onClose, m
         <div className={style.wrapper}>
             <form onSubmit={handleSubmit}>
                 <div className={style.card}>
-                    <div className={style.row}>
-                        <label className={style.label}>Cardholder Name</label>
-                        <p>{billing_details.name}</p>
-                    </div>
                     <div className={joinClassNames(style.row, style.col)}>
                         <div className={style.cardNumber}>
                             <label className={style.label}>Card Number</label>
@@ -95,7 +90,7 @@ const PaymentForm: React.FC<IProps> = ({paymentMethod, paymentIntent, onClose, m
                         </div>
                         <div className={style.expiry}>
                             <label className={style.label}>Card Expiry</label>
-                            <p>{format(new Date(`${card.exp_year}/${card.exp_month}/01`), "mm/yyyy")}</p>
+                            <p>{card.exp_month < 10? `0${card.exp_month}` : card.exp_month}/{card.exp_year}</p>
                         </div>
                     </div>
 

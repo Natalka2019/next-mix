@@ -5,12 +5,11 @@ import {useSession} from "next-auth/react";
 import PageWrapper from "@/components/PageWrapper";
 import Link from "next/link";
 import CardDetails from "@/components/CardDetails"
-import {useState} from "react";
+
 
 export default function Home() {
     const {data: session, status} = useSession();
     const loading = status === "loading";
-    const [showMapButton, setShowMapButton] = useState(false);
 
 
     return (
@@ -35,15 +34,15 @@ export default function Home() {
                                     <img src={session.user.image} alt="" className={styles.avatar}/>}
 
                                 <div>
-                                    <CardDetails userEmail={session.user?.email} setShowMapButton={setShowMapButton}/>
+                                    <CardDetails userEmail={session.user?.email} />
                                 </div>
 
-                                {showMapButton && <div className={styles.mapButton}>
+                                <div className={styles.mapButton}>
                                     <Link   href={{
                                         pathname: '/map',
-                                        query: {userEmail: session.user?.email}
+                                        query: {userEmail: session.user?.email, userName: session.user?.name}
                                     }}>Show map</Link>
-                                </div>}
+                                </div>
 
                             </>
                         )}

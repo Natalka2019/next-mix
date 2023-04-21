@@ -1,6 +1,8 @@
 export interface IDestination {
     lat: number;
     lng: number;
+    city: String;
+    country: String
 }
 
 export interface IDestinations {

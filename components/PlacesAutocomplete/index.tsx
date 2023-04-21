@@ -4,14 +4,17 @@ import React, {FunctionComponent} from "react";
 
 
 interface IProps {
-    onAddressSelect?: (address: string) => void;
+    onAddressSelect?: (address: string, destKey: string) => void;
     placeholder: string | undefined;
+    destKey: string;
 }
 
-const PlacesAutocomplete: FunctionComponent<IProps> = ({
-                                onAddressSelect,
-                                placeholder
-                            }) => {
+const PlacesAutocomplete: FunctionComponent<IProps> = (
+    {
+        onAddressSelect,
+        placeholder,
+        destKey
+    }) => {
     const {
         ready,
         value,
@@ -38,7 +41,7 @@ const PlacesAutocomplete: FunctionComponent<IProps> = ({
                     onClick={() => {
                         setValue(description, false);
                         clearSuggestions();
-                        onAddressSelect && onAddressSelect(description);
+                        onAddressSelect && onAddressSelect(description, destKey);
                     }}
                 >
                     <strong>{main_text}</strong> <small>{secondary_text}</small>

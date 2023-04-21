@@ -1,0 +1,17 @@
+.modalTitle {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.route {
+    margin-top: 20px;
+    font-weight: 600;
+}
+
+.title {
+    font-weight: 600;
+}
+
+.distance {
+    margin-bottom: 20px;
+}

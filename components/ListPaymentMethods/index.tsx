@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import style from "./ListPaymentMethods.module.css";
 import axios from "axios";
 import {PaymentMethod} from '@stripe/stripe-js';
-import {format} from "date-fns";
+
 
 interface IProps {
     handleSelectCard: (method: any) => void;
@@ -46,7 +46,7 @@ const ListPaymentMethods: React.FC<IProps> = ({ handleSelectCard, customerId }) 
 
                         <div className={style.expire}>
                             Expires{" "}
-                            {format(new Date(`${method.card?.exp_year}/${method.card?.exp_month}/01`), "mm/yyyy")}
+                            {method.card && (method.card.exp_month) < 10? `0${method.card?.exp_month}` : method.card?.exp_month}/{method.card?.exp_year}
                         </div>
                     </div>
                 })}

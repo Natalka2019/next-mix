@@ -5,10 +5,9 @@ import styles from "./CardDetails.module.css";
 
 interface IProps {
     userEmail: string | undefined | null;
-    setShowMapButton: (status: boolean) => void;
 }
 
-const CardDetailsForm: React.FC<IProps> = ({userEmail, setShowMapButton}) => {
+const CardDetailsForm: React.FC<IProps> = ({userEmail}) => {
     const stripe = useStripe();
     const elements = useElements();
     const [savingError, setSavingError] = useState("");
@@ -52,7 +51,6 @@ const CardDetailsForm: React.FC<IProps> = ({userEmail, setShowMapButton}) => {
             }
 
             setSavingSuccess(true);
-            setShowMapButton(true);
 
         } catch (error) {
             if (error instanceof Error) {

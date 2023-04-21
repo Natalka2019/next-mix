@@ -13,6 +13,9 @@ import Modal from "@/components/Modal";
 import InformationModal from "@/components/InformationModal";
 import {useRouter} from "next/router";
 import {getSimpleStringFromParam} from "@/utils/getSimpleStringFromParams";
+import {extractCityAndCountryFromAddress, getCityAndCountry} from "@/utils/getCityAndCountry";
+import Header from "@/components/Header";
+import PageWrapper from "@/components/PageWrapper";
 
 
 const libraries = ['places'];
@@ -35,10 +38,12 @@ const polylineOptions = {
 
 const destinationClicks = ["A", "B", "C"];
 
+
 const Map: NextPage = () => {
     const router = useRouter();
-    const {userEmail} = router.query;
+    const {userEmail, userName} = router.query;
     const email = getSimpleStringFromParam(userEmail);
+    const name = getSimpleStringFromParam(userName);
 
     const [destinations, setDestinations] = useState<IDestinations>({
         A: null,
@@ -54,6 +59,7 @@ const Map: NextPage = () => {
     const [pointALatLng, setPointALatLng] = useState<google.maps.LatLng>();
     const [pointBLatLng, setPointBLatLng] = useState<google.maps.LatLng>();
     const [pointCLatLng, setPointCLatLng] = useState<google.maps.LatLng>();
+    const [selectNewRoute, setSelectNewRoute] = useState(false);
 
     const mapOptions = useMemo<google.maps.MapOptions>(
         () => ({
@@ -156,8 +162,12 @@ const Map: NextPage = () => {
 
     }
 
-    const movement = () => {
-        moveMarkerFromAtoB();
+    const movement = async () => {
+        await moveMarkerFromAtoB();
+
+        setSelectNewRoute(true);
+
+        console.log("INSIDE MOVEMENT");
 
     };
 
@@ -185,15 +195,20 @@ const Map: NextPage = () => {
 
     };
 
-    const onMapClick = (e: any) => {
+    const onMapClick = async (e: any) => {
 
         if (mapClicksCount === 3) return;
+
+        const {city, country} = await getCityAndCountry(e.latLng);
+
 
         setDestinations((prevState) => ({
             ...prevState,
             [destinationClicks[mapClicksCount]]: {
                 lat: e.latLng.lat(),
-                lng: e.latLng.lng()
+                lng: e.latLng.lng(),
+                city,
+                country
             }
         }));
 
@@ -215,14 +230,34 @@ const Map: NextPage = () => {
         setShowModal(true)
     };
 
+    const onAddressSelect = async (address: string, destKey: string) => {
+
+        const results = await getGeocode({address: address});
+
+        const {lat, lng} = getLatLng(results[0]);
+
+        const {extractedCity, extractedCountry} = extractCityAndCountryFromAddress(results[0].address_components);
+
+        setDestinations((prevState
+        ) => ({
+            ...prevState,
+            [destKey]: {lat: lat, lng: lng, extractedCity, extractedCountry}
+        }));
+
+    }
+
+    console.log("destinations", destinations);
+    console.log("selectNewRoute", selectNewRoute);
+
 
     if (!isLoaded) {
         return <p>Loading...</p>;
     }
 
-
     return (
         <>
+            <Header/>
+            <PageWrapper>
             <div className={styles.container}>
                 <div className={styles.sidebar}>
                     <p>Select places</p>
@@ -233,18 +268,9 @@ const Map: NextPage = () => {
                                 <label>
                                     {destKey}
                                     <PlacesAutocomplete
-                                        onAddressSelect={(address: string) => {
-                                            getGeocode({address: address}).then((results) => {
-                                                const {lat, lng} = getLatLng(results[0]);
-
-                                                setDestinations((prevState
-                                                ) => ({
-                                                    ...prevState,
-                                                    [destKey]: {lat: lat, lng: lng}
-                                                }));
-                                            });
-                                        }}
+                                        onAddressSelect={onAddressSelect}
                                         placeholder="Type place name"
+                                        destKey={destKey}
                                     />
                                 </label>
 
@@ -310,10 +336,16 @@ const Map: NextPage = () => {
                 onClose={() => setShowModal(false)}
                 show={showModal}
             >
-                <InformationModal userEmail={email} distance={distance} onClose={() => setShowModal(false)}
-                                  movement={movement}/>
+                <InformationModal userEmail={email}
+                                  userName={name}
+                                  distance={distance}
+                                  onClose={() => setShowModal(false)}
+                                  movement={movement}
+                                  destinations={destinations}
+                />
             </Modal>}
 
+                </PageWrapper>
         </>
     )
 }

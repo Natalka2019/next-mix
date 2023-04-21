@@ -9,13 +9,12 @@ const stripePromise = getStripejs();
 
 interface IProps {
     userEmail: string | undefined | null;
-    setShowMapButton: (status: boolean) => void;
 }
 
-const CardDetails: React.FC<IProps> = ({userEmail, setShowMapButton}) => (
+const CardDetails: React.FC<IProps> = ({userEmail}) => (
     <div className={styles.wrapper}>
         <Elements stripe={stripePromise}>
-            <CardDetailsForm userEmail={userEmail} setShowMapButton={setShowMapButton}/>
+            <CardDetailsForm userEmail={userEmail}/>
         </Elements>
     </div>
 );

@@ -6,7 +6,7 @@
 
 .mapButton a {
     margin-top: 50px;
-    border: 1px solid lightblue;
+    border: 1px solid darkblue;
     border-radius: 20px;
     cursor: pointer;
     width: 100%;
@@ -15,10 +15,10 @@
     align-items: center;
     justify-content: center;
     padding: 10px;
-    color: lightblue;
+    color: darkblue;
 }
 
 .mapButton a:hover {
-    border-color: darkblue;
-    color: darkblue;
+    background-color: darkblue;
+    color: white;
 }
