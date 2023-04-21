@@ -28,17 +28,26 @@ const PaymentForm: React.FC<IProps> = ({paymentMethod, paymentIntent, onClose, m
         if(!paymentMethod) return;
 
         try {
-            await stripe.createToken("cvc_update", elements.getElement(CardCvcElement));
 
-            const response = await axios.post("/api/stripe/confirm-payment", {
-                paymentMethod: paymentMethod.id,
-                paymentIntent: paymentIntent.id,
-            });
+            console.log("paymentIntent", paymentIntent);
+
+            const response = await stripe.confirmCardPayment(paymentIntent.client_secret, {
+                payment_method: paymentMethod.id,
+                payment_method_options: {
+                    card: {
+                        cvc: elements.getElement(CardCvcElement)
+                    }
+                }
+            })
 
 
-            handleServerResponse(response.data);
+            console.log("response", response);
+
+            handleServerResponse(response);
 
         } catch (error) {
+
+            console.log("error", error)
             setCvcError(error.message);
         }
 

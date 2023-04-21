@@ -164,15 +164,14 @@ const Map: NextPage = () => {
 
     const movement = async () => {
         await moveMarkerFromAtoB();
-
-        setSelectNewRoute(true);
-
-        console.log("INSIDE MOVEMENT");
-
     };
 
     const moveMarker = (initialLat: number, initialLng: number) => {
         if (i === numDeltas && isLast) {
+
+            setSelectNewRoute(true);
+
+            console.log("INSIDE MOVEMENT");
             return;
         }
 
@@ -191,7 +190,7 @@ const Map: NextPage = () => {
         });
 
         i++;
-        setTimeout(() => moveMarker(initialLat, initialLng), delay);
+        setTimeout(() => moveMarker(initialLat, initialLng), delay)
 
     };
 
@@ -249,6 +248,20 @@ const Map: NextPage = () => {
     console.log("destinations", destinations);
     console.log("selectNewRoute", selectNewRoute);
 
+    const clearSelections = () => {
+        setDestinations({
+            A: null,
+            B: null,
+            C: null
+        });
+
+        setMapClicksCount(0);
+        setCoordsForPolylines([]);
+        setPlanePosition(null);
+        setDistance(0);
+        setSelectNewRoute(false);
+    }
+
 
     if (!isLoaded) {
         return <p>Loading...</p>;
@@ -256,8 +269,8 @@ const Map: NextPage = () => {
 
     return (
         <>
-            <Header/>
-            <PageWrapper>
+            {/*<Header/>*/}
+            {/*<PageWrapper>*/}
             <div className={styles.container}>
                 <div className={styles.sidebar}>
                     <p>Select places</p>
@@ -283,6 +296,8 @@ const Map: NextPage = () => {
                     {/*<button onClick={movement}>Move marker</button>*/}
 
                     <button className={styles.showPaymentModal} onClick={showPaymentModal}>Show payment modal</button>
+
+                    {selectNewRoute && <button onClick={clearSelections} className={styles.createNewRoute}>Select new route</button>}
 
                 </div>
 
@@ -345,7 +360,7 @@ const Map: NextPage = () => {
                 />
             </Modal>}
 
-                </PageWrapper>
+                {/*</PageWrapper>*/}
         </>
     )
 }

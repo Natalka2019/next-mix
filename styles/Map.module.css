@@ -22,22 +22,25 @@
     margin: 20px 5px;
 }
 
-.constructRoute, .showPaymentModal {
+.constructRoute, .showPaymentModal, .createNewRoute {
     width: 96%;
     margin: 20px 10px;
     padding: 10px;
     border: none;
     border-radius: 10px;
     cursor: pointer;
+    color: darkblue;
 }
 
 .constructRoute {
-    color: darkblue;
     background-color: aquamarine;
 }
 
 .showPaymentModal {
-    color: darkblue;
     background-color: aqua;
+}
+
+.createNewRoute {
+    background-color: #5890FF;
 }
 

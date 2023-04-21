@@ -14,7 +14,8 @@ const createPayment = async (req: NextApiRequest, res: NextApiResponse) => {
             currency: currency,
             customer: userCustomerId,
             payment_method: paymentMethod,
-            confirmation_method: "manual", // For 3D Security
+            //confirmation_method: "manual", // For 3D Security. Manual confirmation for Payment Intents is for server-side confirmation only (i.e. with your secret API key, not your publishable key). Setting confirmation_method to manual on a Payment Intent is the same as saying, "this Payment Intent can only be confirmed server-side".
+            confirmation_method: "automatic",
             description: "Buy Product",
         });
 
