@@ -8,7 +8,7 @@ import {
     getLatLng,
 } from 'use-places-autocomplete';
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
-import {IDestinations, ICoord} from "@/types/map";
+import {IDestinations} from "@/types/map";
 import Modal from "@/components/Modal";
 import InformationModal from "@/components/InformationModal";
 import {useRouter} from "next/router";
@@ -16,6 +16,7 @@ import {getSimpleStringFromParam} from "@/utils/getSimpleStringFromParams";
 import {extractCityAndCountryFromAddress, getCityAndCountry} from "@/utils/getCityAndCountry";
 import Header from "@/components/Header";
 import PageWrapper from "@/components/PageWrapper";
+import useConstructRoute from "@/hooks/useConstructRoute";
 
 
 const libraries = ['places'];
@@ -45,6 +46,17 @@ const Map: NextPage = () => {
     const email = getSimpleStringFromParam(userEmail);
     const name = getSimpleStringFromParam(userName);
 
+    const {
+        constructRoute,
+        coordsForPolylines,
+        planePosition,
+        pointALatLng,
+        pointBLatLng,
+        pointCLatLng,
+        setPlanePosition,
+        setCoordsForPolylines
+    } = useConstructRoute();
+
     const [destinations, setDestinations] = useState<IDestinations>({
         A: null,
         B: null,
@@ -52,13 +64,8 @@ const Map: NextPage = () => {
     });
 
     const [mapClicksCount, setMapClicksCount] = useState(0);
-    const [coordsForPolylines, setCoordsForPolylines] = useState<ICoord[]>([]);
-    const [planePosition, setPlanePosition] = useState<ICoord | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [distance, setDistance] = useState(0);
-    const [pointALatLng, setPointALatLng] = useState<google.maps.LatLng>();
-    const [pointBLatLng, setPointBLatLng] = useState<google.maps.LatLng>();
-    const [pointCLatLng, setPointCLatLng] = useState<google.maps.LatLng>();
     const [selectNewRoute, setSelectNewRoute] = useState(false);
 
     const mapOptions = useMemo<google.maps.MapOptions>(
@@ -75,28 +82,6 @@ const Map: NextPage = () => {
         libraries: libraries as any,
     });
 
-    const constructRoute = () => {
-        const updatedCoordsForPolylines = Object.values(destinations).map(destination => ({
-            lat: destination.lat,
-            lng: destination.lng
-        }));
-
-        setCoordsForPolylines(updatedCoordsForPolylines);
-
-
-        if (destinations.A) {
-            setPlanePosition({
-                lat: destinations.A.lat,
-                lng: destinations.A.lng
-            });
-        }
-
-        setPointALatLng(createGoogleLatLngObject(destinations.A?.lat, destinations.A?.lng));
-        setPointBLatLng(createGoogleLatLngObject(destinations.B?.lat, destinations.B?.lng));
-        setPointCLatLng(createGoogleLatLngObject(destinations.C?.lat, destinations.C?.lng));
-
-    };
-
 
     const numDeltas = 100;
     let delay = 10; //milliseconds
@@ -105,11 +90,6 @@ const Map: NextPage = () => {
     let deltaLng: number;
     let isLast: boolean;
 
-    const createGoogleLatLngObject = (lat: number | undefined, lng: number | undefined) => {
-        if (lat && lng) {
-            return new window.google.maps.LatLng(lat, lng)
-        }
-    };
 
     const rotatePlane = (point1LatLng: google.maps.LatLng, point2LatLng: google.maps.LatLng) => {
         const angle = window.google.maps.geometry.spherical.computeHeading(point1LatLng, point2LatLng);
@@ -288,7 +268,7 @@ const Map: NextPage = () => {
                         ))}
                     </ul>
 
-                    <button className={styles.constructRoute} onClick={constructRoute}>Construct route</button>
+                    <button className={styles.constructRoute} onClick={() => constructRoute(destinations)}>Construct route</button>
 
                     <button className={styles.showPaymentModal} onClick={showPaymentModal}>Show payment modal</button>
 
